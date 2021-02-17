@@ -30,46 +30,38 @@ else
 		FLUSH PRIVILEGES;
 		GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD' WITH GRANT OPTION;
 		UPDATE user SET password=PASSWORD("$MYSQL_ROOT_PASSWORD") WHERE user='root';
-		GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
 		CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;
+		GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
 		GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
 	EOF
 
   	/usr/sbin/mysqld --user=root --bootstrap --verbose=0 < "$tfile"
   	rm -f "$tfile"
+
+	echo "Importing data to $MYSQL_DATABASE database"
+	cat openmrs.sql | mysql_embedded -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"
 fi
 
-if [ -d "$MYSQL_DATA_DIRECTORY/$MYSQL_DATABASE" ]; then
-	echo "Database $MYSQL_DATABASE already exists"
-	echo "Dropping the existing $MYSQL_DATABASE database"
-	tfile=$(mktemp)
-  	if [ ! -f "$tfile" ]; then
-      		return 1
-  	fi
+# if [ -d "$MYSQL_DATA_DIRECTORY/$MYSQL_DATABASE" ]; then
+# 	echo "Database $MYSQL_DATABASE already exists"
+# else 
+# 	tfile=$(mktemp)
+# 	if [ ! -f "$tfile" ]; then
+# 			return 1
+# 	fi
 
-  	cat <<-EOF > "$tfile"
-		DROP DATABASE \`$MYSQL_DATABASE\`;
-	EOF
+# 	cat <<-EOF > "$tfile"
+# 		CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;
+# 		GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
+# 	EOF
 
-	/usr/sbin/mysqld --user=root --bootstrap --verbose=0 < "$tfile"
-  	rm -f "$tfile"
-fi 
+# 	echo "Creating $MYSQL_DATABASE database"
+# 	/usr/sbin/mysqld --user=root --bootstrap --verbose=0 < "$tfile"
+# 	rm -f "$tfile"
 
-tfile=$(mktemp)
-if [ ! -f "$tfile" ]; then
-		return 1
-fi
-
-cat <<-EOF > "$tfile"
-	CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;
-EOF
-
-echo "Creating $MYSQL_DATABASE database"
-/usr/sbin/mysqld --user=root --bootstrap --verbose=0 < "$tfile"
-rm -f "$tfile"
-
-echo "Importing data to $MYSQL_DATABASE database"
-cat openmrs.sql | mysql_embedded -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"
+# 	echo "Importing data to $MYSQL_DATABASE database"
+# 	cat openmrs.sql | mysql_embedded -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"
+# fi
 
 echo 'Starting server'
 exec /usr/sbin/mysqld --user=root --console
