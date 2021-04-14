@@ -1,7 +1,7 @@
 openmrs.log
 
 # Don't commit webapps
-data/webapps
+data/webapps/openmrs/
 data/OpenMRS/.openmrs-lib-cache
 data/OpenMRS/activemq-data
 data/OpenMRS/chartsearch
