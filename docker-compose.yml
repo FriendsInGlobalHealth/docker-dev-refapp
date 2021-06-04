@@ -1,5 +1,16 @@
 version: "3.2"
 services:
+     refapp-db:
+         build:
+             context: ./mysql
+         container_name: refapp-db
+         ports:
+             - "3320:3306"
+         networks:
+             - network
+         volumes:
+             - datadb:/var/lib/mysql
+
      refapp-tomcat:
          build:
              context: ./tomcat
@@ -17,20 +28,11 @@ services:
            - type: bind
              source: ./data/OpenMRS
              target: /usr/local/tomcat/.OpenMRS
-         restart: unless-stopped
-
-     refapp-db:
-         build:
-             context: ./mysql
-         container_name: refapp-db
-         ports:
-             - "3320:3306"
-         networks:
-             - network
-         volumes:
-             - datadb:/var/lib/mysql
-         restart: unless-stopped
-
+         healthcheck:
+            test: "/usr/bin/mysql --user=root --password=root --execute \"SHOW DATABASES;\""
+            interval: 2s
+            timeout: 30s
+            retries: 15
 networks:
   network:
     driver: bridge
