@@ -1,4 +1,5 @@
-FROM tomcat:8-jre8-alpine
+FROM tomcat:8-jre8-temurin
+LABEL maintainer=mmhawila@juutech.co.tz
 
 RUN mkdir -p /usr/local/tomcat/.OpenMRS
 
