@@ -12,3 +12,4 @@ COPY localtime /etc/localtime
 #VOLUME /usr/local/tomcat
 
 EXPOSE 8080
+EXPOSE 465
